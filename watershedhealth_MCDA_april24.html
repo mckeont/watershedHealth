@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Watershed Health Goals Calculator</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            padding: 20px;
+            margin: 0;
+        }
+        h1, h2 {
+            color: #333;
+        }
+        form {
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+        }
+        label {
+            display: block;
+            margin: 20px 0 5px;
+            color: #666;
+        }
+        select {
+            margin-top: 10px;
+            width: 100%;
+            padding: 8px;
+            border-radius: 4px;
+            border: 1px solid #ddd;
+        }
+        button {
+            padding: 10px 20px;
+            background-color: #5cb85c;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+        button:hover {
+            background-color: #4cae4c;
+        }
+        h2 { margin-top: 20px; }
+
+    table.result-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+        table.result-table th,
+        table.result-table td {
+            border: 1px solid #ddd;
+            padding: 10px;
+            text-align: left;
+        }
+        table.result-table th {
+            background-color: #f8f8f8;
+        }
+    </style>
+</head>
+<body>
+    <h1>Watershed Health Goals</h1>
+    <form id="mcdaForm">
+        <label>Intervention Purpose:
+            <select id="interventionPurpose" onchange="updateInterventionType()">
+                <option value="">Select Purpose</option>
+                <option value="Improved Water Quality">Improved Water Quality</option>
+                <option value="Erosion Control">Erosion Control</option>
+                <option value="Reduced Sedimentation">Reduced Sedimentation</option>
+                <option value="Increased Supply Resilience">Increased Supply Resilience</option>
+                <option value="Yet to be Categorized">Yet to be Categorized</option>
+            </select>
+        </label>
+        <label>Intervention Type:
+            <select id="interventionType">
+                <!-- Options will be dynamically added based on the purpose -->
+            </select>
+        </label>
+        <button type="button" onclick="displayDescription()">Calculate</button>
+    </form>
+    <h2>Recommendation: <span id="description">Please select an intervention purpose and type.</span></h2>
+  <table class="result-table">
+    <thead>
+        <tr>
+            <th>Intervention Purpose</th>
+            <th>Intervention Type</th>
+            <th>Overall Assessment</th>
+            <th>Bond Score</th>
+            <th>CWSRF Score</th>
+            <th>DWSRF Score</th>
+        </tr>
+    </thead>
+        <tbody id="resultsBody">
+            <!-- Dynamically inserted rows will go here -->
+        </tbody>
+    </table>
+ <script>
+
+ const interventions = {
+     'Improved Water Quality': ['Stream restoration', 'Prescribed burns', 'Sediment catchments', 'Habitat restoration', 'Forest thinning / forest treatment', 'Mulching / straw bales', 'Aerial mulching'],
+     'Erosion Control': ['Embankment stabilization', 'Stream restoration', 'Prescribed burns', 'Wetland restoration'],
+     'Reduced Sedimentation': ['Embankment stabilization', 'Sediment catchments', 'Wetland restoration', 'Stream restoration'],
+     'Increased Supply Resilience': ['Prescribed burns', 'Off-channel ponds', 'Sediment catchments', 'Beaver dams', 'Revegetation', 'Fire resistant plantings', 'Increased plant diversity', 'Seeding'],
+     'Yet to be Categorized': ['Public awareness and outreach', 'Land acquisition', 'Conservation easements', 'Dam removal', 'Bottomless culverts']
+ };
+
+ // Score matrix with all intervention types and their corresponding scores
+ const scoreMatrix = {
+     'Stream restoration': { 'Bond': 10, 'CWSRF': 10, 'DWSRF': 5 },
+     'Prescribed burns': { 'Bond': 2, 'CWSRF': 0, 'DWSRF': 0 },
+     'Sediment catchments': { 'Bond': 10, 'CWSRF': 10, 'DWSRF': 5 },
+     'Habitat restoration': { 'Bond': 5, 'CWSRF': 10, 'DWSRF': 2 },
+     'Forest thinning / forest treatment': { 'Bond': 5, 'CWSRF': 10, 'DWSRF': 0 },
+     'Mulching / straw bales': { 'Bond': 5, 'CWSRF': 0, 'DWSRF': 2},
+     'Aerial mulching': { 'Bond': 5, 'CWSRF': 0, 'DWSRF': 2 },
+     'Embankment stabilization': { 'Bond': 10, 'CWSRF': 10, 'DWSRF': 2 },
+     'Wetland restoration': { 'Bond': 10, 'CWSRF': 10, 'DWSRF': 2 },
+     'Off-channel ponds': { 'Bond': 10, 'CWSRF': 0, 'DWSRF': 0 },
+     'Beaver dams': { 'Bond': 10, 'CWSRF': 10, 'DWSRF': 0 },
+     'Revegetation': { 'Bond': 2, 'CWSRF': 0, 'DWSRF': 5 },
+     'Fire resistant plantings': { 'Bond': 2, 'CWSRF': 0, 'DWSRF': 5 },
+     'Increased plant diversity': { 'Bond': 2, 'CWSRF': 0, 'DWSRF': 5 },
+     'Seeding': { 'Bond': 2, 'CWSRF': 0, 'DWSRF': 5 },
+     'Public awareness and outreach': { 'Bond': 0, 'CWSRF': 0, 'DWSRF': 10 },
+     'Land acquisition': { 'Bond': 10, 'CWSRF': 0, 'DWSRF': 10 },
+     'Conservation easements': { 'Bond': 10, 'CWSRF': 0, 'DWSRF': 10 },
+     'Dam removal': { 'Bond': 10, 'CWSRF': 0, 'DWSRF': 2 },
+     'Bottomless culverts': { 'Bond': 0, 'CWSRF': 0, 'DWSRF': 0 }
+ };
+
+    function updateInterventionType() {
+        const purpose = document.getElementById('interventionPurpose').value;
+        const typeSelect = document.getElementById('interventionType');
+        typeSelect.innerHTML = '<option value="">Select Type</option>'; // Clear previous options
+
+        if (purpose && interventions[purpose]) {
+            interventions[purpose].forEach(function(type) {
+                const option = document.createElement('option');
+                option.value = type;
+                option.text = type;
+                typeSelect.appendChild(option);
+            });
+        }
+    }
+
+    function displayDescription() {
+        const type = document.getElementById('interventionType').value;
+        if (!type) {
+            document.getElementById('description').innerText = 'Please select an intervention type to see the description and scores.';
+            return;
+        }
+
+        const scores = scoreMatrix[type] || {}; // Get scores from the matrix or an empty object if not found
+        displayResults(scores['Bond'], scores['CWSRF'], scores['DWSRF']);
+    }
+    function displayResults(purpose, type, bondScore, cwsrfScore, dwsrfScore) {
+const overallDescription = getOverallDescription(bondScore + cwsrfScore + dwsrfScore);
+const bondDescription = getBondDescription(bondScore);
+const cwsrfDescription = getCWSRFDescription(cwsrfScore);
+const dwsrfDescription = getDWSRFDescription(dwsrfScore);
+
+const resultsBody = document.getElementById('resultsBody');
+const newRow = resultsBody.insertRow();
+newRow.innerHTML = `
+    <td>${purpose}</td>
+    <td>${type}</td>
+    <td>${overallDescription}</td>
+    <td>${bondDescription}</td>
+    <td>${cwsrfDescription}</td>
+    <td>${dwsrfDescription}</td>
+`;
+}
+
+function displayDescription() {
+const purpose = document.getElementById('interventionPurpose').value;
+const type = document.getElementById('interventionType').value;
+if (!type) {
+    document.getElementById('description').innerText = 'Please select an intervention type to see the description and scores.';
+    return;
+}
+
+const scores = scoreMatrix[type] || {}; // Get scores from the matrix or an empty object if not found
+displayResults(purpose, type, scores['Bond'], scores['CWSRF'], scores['DWSRF']);
+}
+
+        function getOverallDescription(score) {
+            if (score >= 20) return 'Interventions highly suitable for financing';
+            if (score >= 7) return 'Interventions fairly suitable for financing';
+            return 'Interventions not yet suitable for financing';
+        }
+
+        function getBondDescription(score) {
+            if (score === 10) return 'Highly bond suitable';
+            if (score === 5) return 'Fairly bond suitable';
+            return 'Not yet bond suitable:';
+        }
+
+        function getCWSRFDescription(score) {
+            if (score === 10) return 'Highly CWSRF suitable';
+            if (score === 5) return 'Fairly CWSRF suitable';
+            return 'Not yet CWSRF suitable:';
+        }
+
+        function getDWSRFDescription(score) {
+            if (score === 10) return 'Highly DWSRF suitable';
+            if (score === 5) return 'Fairly DWSRF suitable';
+            return 'Not yet DWSRF suitable';
+        }
+
+    </script>
+</body>
+</html>
