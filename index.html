@@ -76,6 +76,17 @@
     </style>
 </head>
 <body>
+
+    <!-- Info Modal -->
+<div id="infoModal" style="display:none; position: fixed; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.5); z-index: 1000;">
+    <div style="background-color: #fff; width: 300px; padding: 20px; border-radius: 8px; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);">
+        <span id="closeModal" style="cursor: pointer; float: right; font-size: 24px;">&times;</span>
+        <h2>Info</h2>
+        <p>Insert definition here</p>
+    </div>
+</div>
+
+    
     <h1>Watershed Health Goals <span id="infoIcon" style="cursor: pointer;">ℹ️</span></h1>
     <form id="mcdaForm">
         <label>Intervention Purpose:
@@ -227,9 +238,21 @@ displayResults(purpose, type, scores['Bond'], scores['CWSRF'], scores['DWSRF']);
             return 'Not yet DWSRF suitable';
         }
 
-      document.getElementById('infoIcon').onclick = function() {
-     alert('Example pop up message icon'); 
- };
+   document.getElementById('infoIcon').onclick = function() {
+    document.getElementById('infoModal').style.display = 'block';
+};
+
+document.getElementById('closeModal').onclick = function() {
+    document.getElementById('infoModal').style.display = 'none';
+};
+
+window.onclick = function(event) {
+    var modal = document.getElementById('infoModal');
+    if (event.target === modal) {
+        modal.style.display = 'none';
+    }
+};
+
 
     </script>
 </body>
