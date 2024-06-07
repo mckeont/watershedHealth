@@ -64,7 +64,7 @@
     </style>
 </head>
 <body>
-    <h1>Watershed Health Goals</h1>
+    <h1>Watershed Health Goals <span id="infoIcon" style="cursor: pointer;">ℹ️</span></h1>
     <form id="mcdaForm">
         <label>Intervention Purpose:
             <select id="interventionPurpose" onchange="updateInterventionType()">
@@ -214,6 +214,10 @@ displayResults(purpose, type, scores['Bond'], scores['CWSRF'], scores['DWSRF']);
             if (score === 5) return 'Fairly DWSRF suitable';
             return 'Not yet DWSRF suitable';
         }
+
+      document.getElementById('infoIcon').onclick = function() {
+     alert('Insert definition here');  // Replace 'Insert definition here' with your actual definition text
+ };
 
     </script>
 </body>
